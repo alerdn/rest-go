@@ -4,10 +4,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(server *gin.Engine) {
+func RegisterRoutes(api *gin.RouterGroup) {
 	ProductController := CreateProductController()
 
-	server.GET("/products", ProductController.GetProduct)
-	server.POST("/products", ProductController.CreateProduct)
-	server.GET("/products/:id", ProductController.GetProductById)
+	g := api.Group("/products")
+	{
+		g.GET("/", ProductController.GetProduct)
+		g.POST("/", ProductController.CreateProduct)
+		g.GET("/:id", ProductController.GetProductById)
+	}
 }
