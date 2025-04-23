@@ -14,6 +14,7 @@ func Middleware() gin.HandlerFunc {
 		if !strings.HasPrefix(authorization, "Bearer ") {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Acesso não autorizado"})
 			c.Abort()
+			return
 		}
 
 		token := strings.TrimPrefix(authorization, "Bearer ")
@@ -21,6 +22,7 @@ func Middleware() gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Acesso não autorizado"})
 			c.Abort()
+			return
 		}
 
 		c.Set("userId", claims.UserId)
