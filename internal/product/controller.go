@@ -20,7 +20,7 @@ func NewProductController(usecase ProductUsecase) ProductController {
 func (p *ProductController) GetProduct(c *gin.Context) {
 	products, err := p.usecase.GetProducts()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
 		return
 	}
 
@@ -32,13 +32,13 @@ func (p *ProductController) CreateProduct(c *gin.Context) {
 
 	err := c.BindJSON(&product)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"erro": err})
+		c.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
 		return
 	}
 
 	newProduct, err := p.usecase.CreateProduct(product)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"erro": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
 		return
 	}
 
@@ -60,7 +60,7 @@ func (p *ProductController) GetProductById(c *gin.Context) {
 
 	product, err := p.usecase.GetProductById(productId)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
 		return
 	}
 
