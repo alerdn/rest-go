@@ -1,8 +1,9 @@
-package product
+package repositories
 
 import (
 	"log"
 
+	"github.com/alerdn/rest-go/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +17,7 @@ func NewProductRepository(connection *gorm.DB) ProductRepository {
 	}
 }
 
-func (pr *ProductRepository) CreateProduct(product Product) (int, error) {
+func (pr *ProductRepository) CreateProduct(product models.Product) (int, error) {
 	result := pr.connection.Create(&product)
 	if result.Error != nil {
 		log.Println(result.Error)
@@ -26,8 +27,8 @@ func (pr *ProductRepository) CreateProduct(product Product) (int, error) {
 	return int(product.ID), nil
 }
 
-func (pr *ProductRepository) GetProducts() ([]Product, error) {
-	var products []Product
+func (pr *ProductRepository) GetProducts() ([]models.Product, error) {
+	var products []models.Product
 
 	result := pr.connection.Find(&products)
 	if result.Error != nil {
@@ -38,8 +39,8 @@ func (pr *ProductRepository) GetProducts() ([]Product, error) {
 	return products, nil
 }
 
-func (pr *ProductRepository) GetProductById(id int) (*Product, error) {
-	var product Product
+func (pr *ProductRepository) GetProductById(id int) (*models.Product, error) {
+	var product models.Product
 
 	result := pr.connection.Find(&product, id)
 	if result.Error != nil {

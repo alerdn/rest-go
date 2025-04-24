@@ -1,15 +1,17 @@
-package user
+package controllers
 
 import (
 	"net/http"
 
-	"github.com/alerdn/rest-go/internal/auth"
+	"github.com/alerdn/rest-go/internal/helpers/auth"
+	"github.com/alerdn/rest-go/internal/models"
+	"github.com/alerdn/rest-go/internal/services"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserController struct {
-	usecase UserUsecase
+	service services.UserService
 }
 
 type LoginRequest struct {
@@ -17,9 +19,9 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func NewUserController(usecase UserUsecase) UserController {
+func NewUserController(service services.UserService) UserController {
 	return UserController{
-		usecase,
+		service,
 	}
 }
 
@@ -31,7 +33,7 @@ func (u *UserController) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := u.usecase.GetUserByEmail(req.Email)
+	user, err := u.service.GetUserByEmail(req.Email)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"erro": "E-mail ou senha incorretos"})
 		return
@@ -52,7 +54,7 @@ func (u *UserController) Login(c *gin.Context) {
 }
 
 func (u *UserController) Register(c *gin.Context) {
-	var user User
+	var user models.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
@@ -66,7 +68,7 @@ func (u *UserController) Register(c *gin.Context) {
 	}
 	user.Password = string(hashed)
 
-	newUser, err := u.usecase.Create(user)
+	newUser, err := u.service.Create(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
 		return
@@ -77,8 +79,8 @@ func (u *UserController) Register(c *gin.Context) {
 
 func (u *UserController) Perfil(c *gin.Context) {
 	id := c.GetInt("userId")
-	
-	user, err := u.usecase.GetUserByID(id)
+
+	user, err := u.service.GetUserByID(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
 		return

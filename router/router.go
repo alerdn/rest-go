@@ -1,9 +1,6 @@
 package router
 
 import (
-	"github.com/alerdn/rest-go/internal/product"
-	"github.com/alerdn/rest-go/internal/sale"
-	"github.com/alerdn/rest-go/internal/user"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,9 +10,9 @@ func RegisterRoutes() *gin.Engine {
 
 	api := server.Group("/api")
 	{
-		product.RegisterRoutes(api)
-		user.RegisterRoutes(api)
-		sale.RegisterRoutes(api)
+		RegisterProductRoutes(api)
+		RegisterUserRoutes(api)
+		RegisterSaleRoutes(api)
 	}
 
 	return server

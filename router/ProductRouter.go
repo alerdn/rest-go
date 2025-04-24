@@ -1,11 +1,12 @@
-package product
+package router
 
 import (
+	"github.com/alerdn/rest-go/internal/factories"
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(api *gin.RouterGroup) {
-	ProductController := CreateProductController()
+func RegisterProductRoutes(api *gin.RouterGroup) {
+	ProductController := factories.CreateProductController()
 
 	g := api.Group("/products")
 	{

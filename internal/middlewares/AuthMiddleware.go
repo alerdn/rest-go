@@ -1,9 +1,10 @@
-package auth
+package middlewares
 
 import (
 	"net/http"
 	"strings"
 
+	"github.com/alerdn/rest-go/internal/helpers/auth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,7 +19,7 @@ func Middleware() gin.HandlerFunc {
 		}
 
 		token := strings.TrimPrefix(authorization, "Bearer ")
-		claims, err := VerifyToken(token)
+		claims, err := auth.VerifyToken(token)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Acesso não autorizado"})
 			c.Abort()

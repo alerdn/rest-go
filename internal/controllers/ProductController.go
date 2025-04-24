@@ -1,24 +1,26 @@
-package product
+package controllers
 
 import (
 	"net/http"
 	"strconv"
 
+	"github.com/alerdn/rest-go/internal/models"
+	"github.com/alerdn/rest-go/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
 type ProductController struct {
-	usecase ProductUsecase
+	service services.ProductService
 }
 
-func NewProductController(usecase ProductUsecase) ProductController {
+func NewProductController(service services.ProductService) ProductController {
 	return ProductController{
-		usecase,
+		service,
 	}
 }
 
 func (p *ProductController) GetProduct(c *gin.Context) {
-	products, err := p.usecase.GetProducts()
+	products, err := p.service.GetProducts()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
 		return
@@ -28,7 +30,7 @@ func (p *ProductController) GetProduct(c *gin.Context) {
 }
 
 func (p *ProductController) CreateProduct(c *gin.Context) {
-	var product Product
+	var product models.Product
 
 	err := c.BindJSON(&product)
 	if err != nil {
@@ -36,7 +38,7 @@ func (p *ProductController) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	newProduct, err := p.usecase.CreateProduct(product)
+	newProduct, err := p.service.CreateProduct(product)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
 		return
@@ -58,7 +60,7 @@ func (p *ProductController) GetProductById(c *gin.Context) {
 		return
 	}
 
-	product, err := p.usecase.GetProductById(productId)
+	product, err := p.service.GetProductById(productId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
 		return
