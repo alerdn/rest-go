@@ -77,7 +77,7 @@ func (u *UserController) Register(c *gin.Context) {
 	c.JSON(http.StatusCreated, newUser)
 }
 
-func (u *UserController) Perfil(c *gin.Context) {
+func (u *UserController) Profile(c *gin.Context) {
 	id := c.GetInt("userId")
 
 	user, err := u.service.GetUserByID(id)
@@ -87,4 +87,45 @@ func (u *UserController) Perfil(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, user)
+}
+
+func (u *UserController) RequestPassRecovery(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+		return
+	}
+
+	user, err := u.service.GetUserByEmail(req.Email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"erro": "E-mail não encontrado"})
+		return
+	}
+
+	token, err := auth.GenerateToken(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
+		return
+	}
+
+	body := `
+		<p>Olá, ` + user.Name + `!</p>
+		<p>Você solicitou a recuperação de senha. Clique no link abaixo para redefinir sua senha:</p>
+		<p><a href="http://localhost:8080/reset-password?token=` + token + `">Redefinir senha</a></p>
+		<p>Se você não solicitou a recuperação de senha, ignore este e-mail.</p>
+		<p>Atenciosamente,</p>
+		<p>Equipe do sistema</p>
+		<p>Este é um e-mail automático, não responda.</p>
+	`
+
+	err = services.SendMail(user.Email, "Recuperação de senha", body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "E-mail enviado com sucesso"})
 }

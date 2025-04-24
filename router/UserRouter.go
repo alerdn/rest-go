@@ -14,9 +14,11 @@ func RegisterUserRoutes(api *gin.RouterGroup) {
 		g.POST("/login", UserController.Login)
 		g.POST("/", UserController.Register)
 
+		g.POST("/forgot-password", UserController.RequestPassRecovery)
+
 		protected := g.Use(middlewares.Middleware())
 		{
-			protected.GET("/", UserController.Perfil)
+			protected.GET("/", UserController.Profile)
 		}
 	}
 }
