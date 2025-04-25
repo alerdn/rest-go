@@ -19,6 +19,9 @@ func RegisterUserRoutes(api *gin.RouterGroup) {
 		protected := g.Use(middlewares.Middleware())
 		{
 			protected.GET("/", UserController.Profile)
+			protected.POST("/avatar", UserController.UploadAvatar)
+			protected.GET("/avatar", UserController.DownloadAvatar)
+			protected.DELETE("/avatar", UserController.DeleteAvatar)
 		}
 	}
 }

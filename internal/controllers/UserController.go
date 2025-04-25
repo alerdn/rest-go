@@ -1,7 +1,12 @@
 package controllers
 
 import (
+	"fmt"
+	"io"
+	"log"
+	"mime/multipart"
 	"net/http"
+	"strings"
 
 	"github.com/alerdn/rest-go/internal/helpers/auth"
 	"github.com/alerdn/rest-go/internal/models"
@@ -128,4 +133,89 @@ func (u *UserController) RequestPassRecovery(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "E-mail enviado com sucesso"})
+}
+
+func (u *UserController) UploadAvatar(c *gin.Context) {
+	var req struct {
+		Avatar *multipart.FileHeader `form:"avatar" binding:"required"`
+	}
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+		return
+	}
+
+	if (req.Avatar.Size > 1*1024*1024) {
+		c.JSON(http.StatusBadRequest, gin.H{"erro": "O arquivo deve ter no máximo 1MB"})
+		return
+	}
+
+	fileContent, err := req.Avatar.Open()
+	if err != nil {
+		log.Println("Erro ao abrir o arquivo:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"erro": "Erro ao abrir o arquivo"})
+		return
+	}
+	defer fileContent.Close()
+
+	ext := strings.Split(req.Avatar.Filename, ".")[1]
+	filename := fmt.Sprintf("avatar.%s", ext)
+
+	awsService := services.AWSService{}
+	err = awsService.UploadFile(fmt.Sprintf("/avatar/%s", filename), fileContent)
+	if err != nil {
+		log.Println("Erro ao fazer upload do arquivo:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Avatar atualizado com sucesso"})
+}
+
+func (u *UserController) DownloadAvatar(c *gin.Context) {
+	var req struct {
+		Filename string `form:"filename" binding:"required"`
+	}
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+		return
+	}
+
+	awsService := services.AWSService{}
+	file, err := awsService.DownloadFile(req.Filename)
+	if err != nil {
+		log.Println("Erro ao baixar o arquivo:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"erro": err.Error()})
+		return
+	}
+	defer file.Close()
+
+	c.Header("Content-Disposition", "attachment; filename=avatar.jpg")
+	c.Header("Content-Type", "octet-stream")
+
+	_, err = io.Copy(c.Writer, file)
+	if err != nil {
+		log.Println("Erro ao baixar o arquivo:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"erro": "Erro ao baixar o arquivo"})
+		return
+	}
+}
+
+func (u *UserController) DeleteAvatar(c *gin.Context) {
+	var req struct {
+		Filename string `json:"filename" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+		return
+	}
+
+	awsService := services.AWSService{}
+	err := awsService.DeleteFile(req.Filename)
+	if err != nil {
+		log.Println("Erro ao deletar o arquivo:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"erro": "Erro ao deletar o arquivo"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Avatar deletado com sucesso"})
 }
